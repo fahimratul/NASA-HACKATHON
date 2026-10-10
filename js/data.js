@@ -57,8 +57,8 @@
       unit: '°C / year',
       overall: { slope: 0.028, pValue: 0.001, significance: 'sig', years: '2001–2024' },
       summary: 'A consistent warming signal of about +0.03 °C per year across most of Bangladesh, strongest in the northeast and over urban Dhaka.',
-      swatch: '#c0652a',
-      ramp: ['#2a4a8a', '#a8c0d9', '#efe8d8', '#e8b48a', '#a4292d'],
+      swatch: '#ff8a3d',
+      ramp: ['#1e40af', '#38bdf8', '#64748b', '#f97316', '#fc3d21'],
       domain: [-0.02, 0.06],
       grid: makeGrid({
         base: 0.028, scale: 0.025,
@@ -81,8 +81,8 @@
       unit: 'mm / year',
       overall: { slope: 3.4, pValue: 0.08, significance: 'mar', years: '2001–2024' },
       summary: 'Rainfall is increasing over the northeast and weakening in the southwest — a contrasting regional pattern rather than a national trend.',
-      swatch: '#1f6feb',
-      ramp: ['#8a4e22', '#dcb98a', '#efe8d8', '#8ec3e6', '#0b3d91'],
+      swatch: '#38bdf8',
+      ramp: ['#78350f', '#d97706', '#64748b', '#38bdf8', '#1e40af'],
       domain: [-18, 18],
       grid: makeGrid({
         base: 2.0, scale: 14.0,
@@ -105,8 +105,8 @@
       unit: 'NDVI / decade',
       overall: { slope: -0.014, pValue: 0.03, significance: 'sig', years: '2001–2024' },
       summary: 'Vegetation is declining in rapidly urbanising areas, with modest increases in forested uplands — a mixed picture that averages to a slight decline.',
-      swatch: '#2f6b4f',
-      ramp: ['#a4292d', '#e8b48a', '#efe8d8', '#9ec897', '#1e4d2b'],
+      swatch: '#4ade80',
+      ramp: ['#991b1b', '#f87171', '#64748b', '#4ade80', '#15803d'],
       domain: [-0.05, 0.05],
       grid: makeGrid({
         base: -0.01, scale: 0.04,
@@ -129,8 +129,8 @@
       unit: 'm·s⁻¹ / decade',
       overall: { slope: -0.08, pValue: 0.21, significance: 'ns', years: '2001–2024' },
       summary: 'A slight overall decline in surface wind speed, consistent with regional stilling, but not statistically significant across the study area.',
-      swatch: '#5b7fa5',
-      ramp: ['#2a4a8a', '#9bb3cc', '#efe8d8', '#c9b791', '#8a6b2e'],
+      swatch: '#a78bfa',
+      ramp: ['#1e40af', '#60a5fa', '#64748b', '#fbbf24', '#78350f'],
       domain: [-0.3, 0.3],
       grid: makeGrid({
         base: -0.08, scale: 0.22,

@@ -170,9 +170,16 @@
               </div>
               <div class="gauge" id="gauge">
                 <svg viewBox="0 0 200 110" aria-hidden="true">
-                  <path d="M20 100 A 80 80 0 0 1 180 100" fill="none" stroke="#ecebe4" stroke-width="14" stroke-linecap="round"/>
-                  <path id="gaugeFill" d="M20 100 A 80 80 0 0 1 180 100" fill="none" stroke="#a4292d" stroke-width="14" stroke-linecap="round"
-                        stroke-dasharray="251.3" stroke-dashoffset="251.3" style="transition: stroke-dashoffset 400ms ease;" />
+                  <defs>
+                    <filter id="gaugeGlow" x="-50%" y="-50%" width="200%" height="200%">
+                      <feGaussianBlur stdDeviation="3" result="blur"/>
+                      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                    </filter>
+                  </defs>
+                  <path d="M20 100 A 80 80 0 0 1 180 100" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="14" stroke-linecap="round"/>
+                  <path id="gaugeFill" d="M20 100 A 80 80 0 0 1 180 100" fill="none" stroke="#fc3d21" stroke-width="14" stroke-linecap="round"
+                        stroke-dasharray="251.3" stroke-dashoffset="251.3" filter="url(#gaugeGlow)"
+                        style="transition: stroke-dashoffset 500ms ease, stroke 300ms ease;" />
                 </svg>
                 <div class="gauge-val">
                   <div class="n" id="gaugeVal">—</div>

@@ -609,7 +609,7 @@ p  { margin: 0 0 0.9em; }
 }
 .legend-bar {
   height: 8px; width: 180px; border-radius: 2px;
-  background: linear-gradient(90deg, #2a4a8a 0%, #a8c0d9 45%, #efe8d8 50%, #e8b48a 55%, #a4292d 100%);
+  background: linear-gradient(90deg, #1e40af 0%, #38bdf8 25%, #64748b 50%, #f97316 75%, #fc3d21 100%);
   margin: 4px 0 6px;
   box-shadow: 0 0 0 1px rgba(255,255,255,0.1);
 }

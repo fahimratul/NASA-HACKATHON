@@ -135,13 +135,13 @@
       scrollWheelZoom: false,
     });
 
-    // Soft, scientific base map — CARTO Positron is clean and labels well.
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
+    // Dark NASA-style base map — CARTO Dark Matter.
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', {
       maxZoom: 10,
       subdomains: 'abcd',
       attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
     }).addTo(trendMap);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png', {
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png', {
       maxZoom: 10, subdomains: 'abcd', attribution: '', pane: 'overlayPane',
     }).addTo(trendMap);
 
@@ -178,10 +178,10 @@
         fillOpacity: 0.68,
         interactive: true,
       }).bindTooltip(
-        `<div style="font-family:'JetBrains Mono', monospace; font-size: 11px;">
-          <strong>${v.short}</strong><br/>
+        `<div style="font-family:'JetBrains Mono', monospace; font-size: 11px; color:#e6ebf5;">
+          <strong style="color:#38bdf8;">${v.short}</strong><br/>
           ${cell.center[0].toFixed(2)}°N · ${cell.center[1].toFixed(2)}°E<br/>
-          ${cell.value.toFixed(3)} ${v.unit}
+          <span style="color:#9aa6c0;">${cell.value.toFixed(3)} ${v.unit}</span>
          </div>`,
         { sticky: true }
       ).addTo(gridLayer);
@@ -239,7 +239,8 @@
     const labels = v.anomaly.months;
     const values = v.anomaly.values;
 
-    const colors = values.map(x => (x >= 0 ? v.ramp[v.ramp.length - 1] : v.ramp[0]));
+    // Positive → warm orange/red; negative → cool cyan
+    const colors = values.map(x => (x >= 0 ? '#ff8a3d' : '#38bdf8'));
 
     if (anomalyChart) anomalyChart.destroy();
 
@@ -266,7 +267,11 @@
               title: items => items[0].label,
               label: item => `${item.formattedValue} ${v.unit.replace('/ year','').replace('/ decade','')}`.trim(),
             },
-            backgroundColor: '#141513',
+            backgroundColor: 'rgba(5,7,15,0.95)',
+            titleColor: '#e6ebf5',
+            bodyColor: '#38bdf8',
+            borderColor: 'rgba(255,255,255,0.18)',
+            borderWidth: 1,
             titleFont: { family: 'JetBrains Mono' },
             bodyFont:  { family: 'JetBrains Mono' },
           },
@@ -275,7 +280,7 @@
           x: {
             ticks: {
               font: { family: 'JetBrains Mono', size: 10 },
-              color: '#8c8b84',
+              color: '#5e6a84',
               maxRotation: 0,
               autoSkip: true,
               autoSkipPadding: 24,
@@ -285,13 +290,13 @@
               },
             },
             grid: { display: false },
-            border: { color: '#d9d7cc' },
+            border: { color: 'rgba(255,255,255,0.1)' },
           },
           y: {
-            ticks: { font: { family: 'JetBrains Mono', size: 10 }, color: '#8c8b84' },
-            grid: { color: '#ecebe4' },
+            ticks: { font: { family: 'JetBrains Mono', size: 10 }, color: '#5e6a84' },
+            grid: { color: 'rgba(255,255,255,0.05)' },
             border: { display: false },
-            title: { display: true, text: 'Anomaly', color: '#8c8b84', font: { family: 'Inter', size: 11 } },
+            title: { display: true, text: 'Anomaly', color: '#9aa6c0', font: { family: 'Inter', size: 11 } },
           },
         },
       },
