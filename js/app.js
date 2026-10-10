@@ -55,10 +55,6 @@
     state.view = name;
     $$('#viewNav button').forEach(b => b.classList.toggle('active', b.dataset.view === name));
     $$('.view').forEach(v => v.classList.toggle('active', v.id === `view-${name}`));
-    // Leaflet needs a size invalidation when its container becomes visible
-    if (name === 'trends' && trendMap) {
-      setTimeout(() => trendMap.invalidateSize(), 60);
-    }
   }
 
   $('#viewNav').addEventListener('click', e => {
@@ -79,12 +75,8 @@
       state.locationId = sel.value;
       updateCoord();
       renderHazard();
-      // Centre the map on the new location
       const loc = D.LOCATIONS.find(l => l.id === state.locationId);
-      if (loc && trendMap) {
-        trendMap.setView([loc.lat, loc.lon], 7, { animate: true });
-        placeMarker(loc);
-      }
+      if (loc) placeMarker(loc);
     });
   }
   function updateCoord() {
@@ -121,71 +113,217 @@
   }
 
   // ------------------------------------------------------------------
-  // Trends — map
+  // Trends — SVG mock map (no tile API, no external data)
   // ------------------------------------------------------------------
 
-  let trendMap, gridLayer, markerLayer;
+  const SVG_NS = 'http://www.w3.org/2000/svg';
+  const PROJ = {
+    lonMin: 87.5, lonMax: 93.4,
+    latMin: 20.1, latMax: 27.1,
+    w: 820, h: 640,
+  };
+  function proj(lon, lat) {
+    return [
+      (lon - PROJ.lonMin) * (PROJ.w / (PROJ.lonMax - PROJ.lonMin)),
+      (PROJ.latMax - lat) * (PROJ.h / (PROJ.latMax - PROJ.latMin)),
+    ];
+  }
+
+  // Simplified Bangladesh outline — hand-digitised, ~55 points.
+  // Lon, Lat. Rough but recognisable.
+  const BD_OUTLINE = [
+    [88.42, 26.63],[88.46, 26.75],[88.60, 26.60],[88.80, 26.52],
+    [89.00, 26.47],[89.25, 26.37],[89.45, 26.20],[89.60, 26.17],
+    [89.72, 26.26],[89.85, 25.93],[89.90, 25.33],[90.10, 25.20],
+    [90.44, 25.12],[90.76, 25.17],[91.14, 25.19],[91.45, 25.17],
+    [91.70, 25.12],[92.00, 25.04],[92.25, 24.95],[92.33, 24.73],
+    [92.27, 24.42],[92.08, 24.15],[92.00, 23.72],[92.33, 23.42],
+    [92.42, 22.88],[92.57, 22.35],[92.65, 21.95],[92.60, 21.55],
+    [92.35, 21.37],[92.20, 21.12],[92.17, 20.80],[92.08, 20.72],
+    [91.95, 20.92],[91.86, 21.33],[91.80, 21.48],[91.60, 21.72],
+    [91.42, 21.97],[90.85, 21.81],[90.42, 21.84],[90.13, 21.77],
+    [89.70, 21.80],[89.45, 21.72],[89.15, 21.95],[88.95, 22.18],
+    [88.95, 22.56],[88.85, 22.90],[88.80, 23.25],[88.70, 23.60],
+    [88.60, 24.10],[88.42, 24.37],[88.29, 24.70],[88.11, 25.00],
+    [88.42, 25.42],[88.82, 25.75],[88.60, 26.10],[88.42, 26.33],
+    [88.42, 26.63],
+  ];
+
+  // Decorative schematic river traces — not geographically accurate,
+  // just enough to read as "delta country" at a glance.
+  const RIVERS = [
+    // Padma/Ganges — comes in from NW, flows SE
+    [[88.2, 25.0],[88.9, 24.7],[89.5, 24.4],[89.9, 24.0],[90.4, 23.7],[90.6, 23.3],[90.9, 22.9]],
+    // Jamuna/Brahmaputra — from N, flows S
+    [[89.6, 26.1],[89.7, 25.6],[89.8, 25.0],[89.9, 24.5],[90.0, 24.0],[90.3, 23.6]],
+    // Meghna — from NE, flows S
+    [[91.8, 24.9],[91.5, 24.6],[91.0, 24.2],[90.8, 23.8],[90.7, 23.2],[90.8, 22.5]],
+    // Karnaphuli — Chittagong
+    [[92.3, 22.7],[92.0, 22.5],[91.9, 22.3]],
+  ];
+
+  let svgRoot = null;
+  let markerGroupEl = null;
 
   function initMap() {
-    trendMap = L.map('trendMap', {
-      center: [23.6, 90.4],
-      zoom: 7,
-      zoomControl: true,
-      attributionControl: true,
-      scrollWheelZoom: false,
-    });
+    const container = document.getElementById('trendMap');
+    if (!container) return;
+    container.innerHTML = '';
 
-    // Dark NASA-style base map — CARTO Dark Matter.
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', {
-      maxZoom: 10,
-      subdomains: 'abcd',
-      attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
-    }).addTo(trendMap);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png', {
-      maxZoom: 10, subdomains: 'abcd', attribution: '', pane: 'overlayPane',
-    }).addTo(trendMap);
+    svgRoot = document.createElementNS(SVG_NS, 'svg');
+    svgRoot.setAttribute('viewBox', `0 0 ${PROJ.w} ${PROJ.h}`);
+    svgRoot.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+    svgRoot.setAttribute('class', 'trend-svg');
+    svgRoot.innerHTML = `
+      <defs>
+        <radialGradient id="trendBg" cx="50%" cy="42%" r="78%">
+          <stop offset="0%"  stop-color="#0b1428"/>
+          <stop offset="55%" stop-color="#070a15"/>
+          <stop offset="100%" stop-color="#03050c"/>
+        </radialGradient>
+        <radialGradient id="landGlow" cx="50%" cy="45%" r="55%">
+          <stop offset="0%"  stop-color="rgba(77,139,245,0.08)"/>
+          <stop offset="100%" stop-color="rgba(77,139,245,0)"/>
+        </radialGradient>
+        <filter id="markerGlow" x="-150%" y="-150%" width="400%" height="400%">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="2.4"/>
+        </filter>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#trendBg)"/>
+      <circle cx="${PROJ.w*0.5}" cy="${PROJ.h*0.45}" r="${PROJ.w*0.4}" fill="url(#landGlow)"/>
+      <g id="svgGraticule"></g>
+      <g id="svgCountries"></g>
+      <g id="svgRivers"></g>
+      <g id="svgGrid"></g>
+      <g id="svgMarkers"></g>
+      <g id="svgChrome"></g>
+    `;
+    container.appendChild(svgRoot);
 
-    gridLayer   = L.layerGroup().addTo(trendMap);
-    markerLayer = L.layerGroup().addTo(trendMap);
+    drawGraticule();
+    drawCountries();
+    drawRivers();
+    drawChrome();
 
+    markerGroupEl = svgRoot.querySelector('#svgMarkers');
     const loc = D.LOCATIONS.find(l => l.id === state.locationId);
     if (loc) placeMarker(loc);
   }
 
+  function drawGraticule() {
+    const g = svgRoot.querySelector('#svgGraticule');
+    let out = '';
+    for (let lon = Math.ceil(PROJ.lonMin); lon <= Math.floor(PROJ.lonMax); lon++) {
+      const [x] = proj(lon, 0);
+      out += `<line x1="${x}" y1="0" x2="${x}" y2="${PROJ.h}" stroke="rgba(154,166,192,0.08)" stroke-dasharray="2 6"/>`;
+      out += `<text x="${x + 3}" y="12" fill="#5e6a84" font-family="JetBrains Mono" font-size="10">${lon}°E</text>`;
+    }
+    for (let lat = Math.ceil(PROJ.latMin); lat <= Math.floor(PROJ.latMax); lat++) {
+      const [, y] = proj(0, lat);
+      out += `<line x1="0" y1="${y}" x2="${PROJ.w}" y2="${y}" stroke="rgba(154,166,192,0.08)" stroke-dasharray="2 6"/>`;
+      out += `<text x="4" y="${y - 2}" fill="#5e6a84" font-family="JetBrains Mono" font-size="10">${lat}°N</text>`;
+    }
+    g.innerHTML = out;
+  }
+
+  function drawCountries() {
+    const g = svgRoot.querySelector('#svgCountries');
+    const points = BD_OUTLINE.map(p => proj(p[0], p[1]).join(',')).join(' ');
+    g.innerHTML = `
+      <polygon points="${points}"
+               fill="rgba(77,139,245,0.07)"
+               stroke="rgba(77,139,245,0.55)"
+               stroke-width="1.4"
+               stroke-linejoin="round"
+               style="filter: drop-shadow(0 0 6px rgba(77,139,245,0.35));" />
+      <text x="${proj(90.4, 23.78)[0]}" y="${proj(90.4, 23.78)[1] - 6}"
+            text-anchor="middle" font-family="Inter" font-size="11"
+            letter-spacing="0.18em" fill="rgba(154,166,192,0.55)">BANGLADESH</text>
+      <text x="${proj(88.2, 26.2)[0]}" y="${proj(88.2, 26.2)[1]}"
+            font-family="JetBrains Mono" font-size="9" fill="rgba(94,106,132,0.6)">INDIA</text>
+      <text x="${proj(92.9, 22.7)[0]}" y="${proj(92.9, 22.7)[1]}"
+            font-family="JetBrains Mono" font-size="9" fill="rgba(94,106,132,0.6)">MYANMAR</text>
+      <text x="${proj(90.0, 21.3)[0]}" y="${proj(90.0, 21.3)[1]}"
+            text-anchor="middle" font-family="Fraunces" font-style="italic" font-size="12"
+            fill="rgba(94,106,132,0.5)">Bay of Bengal</text>
+    `;
+  }
+
+  function drawRivers() {
+    const g = svgRoot.querySelector('#svgRivers');
+    const paths = RIVERS.map(r => {
+      const d = r.map((p, i) => {
+        const [x, y] = proj(p[0], p[1]);
+        return (i === 0 ? 'M' : 'L') + x.toFixed(1) + ' ' + y.toFixed(1);
+      }).join(' ');
+      return `<path d="${d}" stroke="rgba(56,189,248,0.35)" stroke-width="1.6" fill="none" stroke-linecap="round"/>`;
+    }).join('');
+    g.innerHTML = paths;
+  }
+
+  function drawChrome() {
+    const g = svgRoot.querySelector('#svgChrome');
+    // Scale bar: 100 km ≈ 0.9° latitude
+    const [x0] = proj(PROJ.lonMin, 0);
+    const [x1] = proj(PROJ.lonMin + 0.9, 0);
+    const scaleW = x1 - x0;
+    const sx = PROJ.w - scaleW - 24;
+    const sy = PROJ.h - 24;
+    // North arrow
+    const nx = PROJ.w - 44, ny = 48;
+    g.innerHTML = `
+      <g transform="translate(${sx} ${sy})">
+        <line x1="0" y1="0" x2="${scaleW}" y2="0" stroke="rgba(154,166,192,0.75)" stroke-width="2"/>
+        <line x1="0" y1="-4" x2="0" y2="4" stroke="rgba(154,166,192,0.75)" stroke-width="2"/>
+        <line x1="${scaleW}" y1="-4" x2="${scaleW}" y2="4" stroke="rgba(154,166,192,0.75)" stroke-width="2"/>
+        <text x="${scaleW / 2}" y="-7" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="rgba(154,166,192,0.9)">100 km</text>
+      </g>
+      <g transform="translate(${nx} ${ny})">
+        <circle r="22" fill="rgba(5,7,15,0.55)" stroke="rgba(255,255,255,0.14)"/>
+        <polygon points="0,-16 5,8 0,4 -5,8" fill="#fc3d21"/>
+        <polygon points="0,16 5,-8 0,-4 -5,-8" fill="rgba(255,255,255,0.35)"/>
+        <text y="28" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#9aa6c0">N</text>
+      </g>
+      <g transform="translate(18 ${PROJ.h - 38})">
+        <text font-family="JetBrains Mono" font-size="10" fill="rgba(154,166,192,0.6)">EQUIRECTANGULAR · WGS84</text>
+      </g>
+    `;
+  }
+
   function placeMarker(loc) {
-    markerLayer.clearLayers();
-    const html = `<div style="
-      width:14px;height:14px;border-radius:50%;
-      background:#a4292d;border:2px solid #fff;
-      box-shadow:0 0 0 3px rgba(164,41,45,0.25), 0 2px 6px rgba(0,0,0,.25);">
-    </div>`;
-    L.marker([loc.lat, loc.lon], {
-      icon: L.divIcon({ html, className: '', iconSize: [14, 14], iconAnchor: [7, 7] }),
-    }).bindTooltip(loc.name, { direction: 'top', offset: [0, -10] }).addTo(markerLayer);
+    if (!markerGroupEl) return;
+    const [x, y] = proj(loc.lon, loc.lat);
+    const short = (loc.name || '').split('·')[0].trim();
+    markerGroupEl.innerHTML = `
+      <g transform="translate(${x} ${y})" class="marker-group">
+        <circle r="20" fill="none" stroke="#fc3d21" stroke-width="1" opacity="0.35" class="marker-pulse"/>
+        <circle r="12" fill="none" stroke="#fc3d21" stroke-width="1.4" opacity="0.55"/>
+        <circle r="4"  fill="#fc3d21" stroke="#ffffff" stroke-width="1.5" filter="url(#markerGlow)"/>
+        <line x1="0" y1="0" x2="0" y2="-26" stroke="rgba(252,61,33,0.55)" stroke-width="1"/>
+        <rect x="-56" y="-44" width="112" height="18" rx="2" fill="rgba(5,7,15,0.78)" stroke="rgba(252,61,33,0.5)"/>
+        <text y="-31" text-anchor="middle" font-family="Inter" font-size="11" font-weight="600" fill="#ffffff">${short}</text>
+      </g>
+    `;
   }
 
   function renderMapGrid() {
-    gridLayer.clearLayers();
+    if (!svgRoot) return;
     const v = D.VARIABLES[state.variable];
     const [dmin, dmax] = v.domain;
-    v.grid.forEach(cell => {
+    const g = svgRoot.querySelector('#svgGrid');
+    const html = v.grid.map(cell => {
       const t = (cell.value - dmin) / (dmax - dmin);
       const color = colorAt(v.ramp, t);
-      L.rectangle(cell.bounds, {
-        color: color,
-        weight: 0,
-        fillColor: color,
-        fillOpacity: 0.68,
-        interactive: true,
-      }).bindTooltip(
-        `<div style="font-family:'JetBrains Mono', monospace; font-size: 11px; color:#e6ebf5;">
-          <strong style="color:#38bdf8;">${v.short}</strong><br/>
-          ${cell.center[0].toFixed(2)}°N · ${cell.center[1].toFixed(2)}°E<br/>
-          <span style="color:#9aa6c0;">${cell.value.toFixed(3)} ${v.unit}</span>
-         </div>`,
-        { sticky: true }
-      ).addTo(gridLayer);
-    });
+      const [x0, y0] = proj(cell.bounds[0][1], cell.bounds[1][0]); // lon_min, lat_max
+      const [x1, y1] = proj(cell.bounds[1][1], cell.bounds[0][0]); // lon_max, lat_min
+      const w = x1 - x0, h = y1 - y0;
+      const title = `${v.short}\n${cell.center[0].toFixed(2)}°N · ${cell.center[1].toFixed(2)}°E\n${cell.value.toFixed(3)} ${v.unit}`;
+      return `<rect x="${x0.toFixed(1)}" y="${y0.toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}"
+                   fill="${color}" fill-opacity="0.62" class="trend-cell"
+                   data-val="${cell.value.toFixed(3)}" data-unit="${v.unit}"
+                   data-lat="${cell.center[0].toFixed(2)}" data-lon="${cell.center[1].toFixed(2)}"><title>${title}</title></rect>`;
+    }).join('');
+    g.innerHTML = html;
   }
 
   // ------------------------------------------------------------------

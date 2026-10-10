@@ -2,14 +2,20 @@
    ECHO EARTH — Mission Globe (Three.js)
    =========================================================== */
 
-import * as THREE from 'three';
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js';
+
+// Immediately hide the spinner as a hard fail-safe even if init() errors
+setTimeout(() => {
+  const el = document.getElementById('globeLoading');
+  if (el) { el.classList.add('hidden'); setTimeout(() => el.remove(), 600); }
+}, 8000);
 
 const TEX = {
-  earth: 'https://cdn.jsdelivr.net/npm/three-globe@2.33.0/example/img/earth-blue-marble.jpg',
+  earth:  'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r161/examples/textures/planets/earth_atmos_2048.jpg',
   normal: 'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r161/examples/textures/planets/earth_normal_2048.jpg',
-  spec:  'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r161/examples/textures/planets/earth_specular_2048.jpg',
-  clouds:'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r161/examples/textures/planets/earth_clouds_1024.png',
-  night: 'https://cdn.jsdelivr.net/npm/three-globe@2.33.0/example/img/earth-night.jpg',
+  spec:   'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r161/examples/textures/planets/earth_specular_2048.jpg',
+  clouds: 'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r161/examples/textures/planets/earth_clouds_1024.png',
+  night:  'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r161/examples/textures/planets/earth_lights_2048.png',
 };
 
 const state = {
@@ -72,68 +78,62 @@ function init() {
   earthGroup = new THREE.Group();
   scene.add(earthGroup);
 
-  const loader = new THREE.TextureLoader();
-  loader.setCrossOrigin('anonymous');
-
   const hideLoader = () => {
     const el = document.getElementById('globeLoading');
     if (el) { el.classList.add('hidden'); setTimeout(() => el.remove(), 600); }
   };
-  // Fail-safe: even if textures hang, hide the overlay after 6 s so UI is usable
-  setTimeout(hideLoader, 6000);
 
-  const texEarth  = loader.load(TEX.earth, hideLoader, undefined, hideLoader);
-  const texNormal = loader.load(TEX.normal);
-  const texSpec   = loader.load(TEX.spec);
-  const texClouds = loader.load(TEX.clouds);
-  const texNight  = loader.load(TEX.night);
-  texEarth.colorSpace = THREE.SRGBColorSpace;
-  texNight.colorSpace = THREE.SRGBColorSpace;
-
-  // Earth sphere (day) with night-side blending via custom shader hook
+  // --- Earth sphere renders INSTANTLY with a solid colour.
+  // Textures swap in once they finish loading.
   const earthGeo = new THREE.SphereGeometry(1, 96, 96);
   const earthMat = new THREE.MeshPhongMaterial({
-    map: texEarth,
-    normalMap: texNormal,
-    specularMap: texSpec,
+    color: 0x1a3d6b,
     specular: new THREE.Color(0x2a3240),
     shininess: 14,
   });
-
-  // Patch shader to blend night texture on dark side
-  earthMat.onBeforeCompile = (shader) => {
-    shader.uniforms.nightMap = { value: texNight };
-    shader.fragmentShader = shader.fragmentShader
-      .replace('#include <common>', `
-        #include <common>
-        uniform sampler2D nightMap;
-      `)
-      .replace('#include <emissivemap_fragment>', `
-        #include <emissivemap_fragment>
-        vec3 nightCol = texture2D( nightMap, vMapUv ).rgb;
-        // Light direction dot normal, in world space
-        vec3 N = normalize( vNormal );
-        // Use first directional light's position (approx) — use view-space hack:
-        vec3 L = normalize( vec3(0.6, 0.2, 0.8) );
-        float dayFactor = clamp( dot(N, L), 0.0, 1.0 );
-        float nightMix = smoothstep(0.0, 0.25, 1.0 - dayFactor);
-        totalEmissiveRadiance += nightCol * nightMix * 1.4;
-      `);
-  };
-
   earth = new THREE.Mesh(earthGeo, earthMat);
   earthGroup.add(earth);
 
-  // Clouds
+  // Clouds — placeholder transparent material; swap in when texture loads
   const cloudsGeo = new THREE.SphereGeometry(1.012, 96, 96);
   const cloudsMat = new THREE.MeshPhongMaterial({
-    map: texClouds,
-    transparent: true,
-    opacity: 0.42,
-    depthWrite: false,
+    transparent: true, opacity: 0, depthWrite: false,
   });
   clouds = new THREE.Mesh(cloudsGeo, cloudsMat);
   earthGroup.add(clouds);
+
+  // Hide spinner right away — the sphere is already visible.
+  hideLoader();
+
+  // --- Async texture loading
+  const loader = new THREE.TextureLoader();
+  loader.setCrossOrigin('anonymous');
+
+  loader.load(TEX.earth,
+    tex => {
+      tex.colorSpace = THREE.SRGBColorSpace;
+      earthMat.map = tex;
+      earthMat.color.set(0xffffff);
+      earthMat.needsUpdate = true;
+    },
+    undefined,
+    err => console.warn('[globe] earth texture failed', err)
+  );
+  loader.load(TEX.normal, tex => { earthMat.normalMap = tex; earthMat.needsUpdate = true; });
+  loader.load(TEX.spec,   tex => { earthMat.specularMap = tex; earthMat.needsUpdate = true; });
+  loader.load(TEX.clouds, tex => {
+    cloudsMat.map = tex;
+    cloudsMat.opacity = 0.42;
+    cloudsMat.needsUpdate = true;
+  });
+  // Night-side city lights as emissive — simple and robust
+  loader.load(TEX.night, tex => {
+    tex.colorSpace = THREE.SRGBColorSpace;
+    earthMat.emissive = new THREE.Color(0xffffff);
+    earthMat.emissiveMap = tex;
+    earthMat.emissiveIntensity = 0.35;
+    earthMat.needsUpdate = true;
+  });
 
   // Atmosphere glow (fresnel)
   const atmoGeo = new THREE.SphereGeometry(1.09, 96, 96);

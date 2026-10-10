@@ -715,7 +715,30 @@ p  { margin: 0 0 0.9em; }
 .map {
   height: 500px; width: 100%;
   border: 1px solid var(--rule); border-radius: var(--radius-lg);
-  overflow: hidden; background: #0a0f1e;
+  overflow: hidden; background: #04060b;
+}
+.trend-svg {
+  width: 100%; height: 100%; display: block;
+  user-select: none;
+}
+.trend-cell {
+  transition: fill-opacity 160ms;
+  cursor: crosshair;
+}
+.trend-cell:hover {
+  fill-opacity: 0.95 !important;
+  stroke: rgba(255,255,255,0.55);
+  stroke-width: 0.6;
+}
+.marker-pulse {
+  transform-origin: center;
+  transform-box: fill-box;
+  animation: markerPulse 2.2s ease-out infinite;
+}
+@keyframes markerPulse {
+  0%   { transform: scale(0.4); opacity: 0.8; }
+  70%  { transform: scale(1.9); opacity: 0;   }
+  100% { transform: scale(1.9); opacity: 0;   }
 }
 .map-legend {
   position: absolute; left: 14px; bottom: 14px; z-index: 500;
@@ -1022,36 +1045,6 @@ p  { margin: 0 0 0.9em; }
 }
 .scorecard div .k { font-size: 0.72rem; color: var(--ink-faint); letter-spacing: 0.08em; text-transform: uppercase; }
 .scorecard div .v { font-family: var(--mono); color: var(--accent-cool); font-size: 1rem; margin-top: 2px; }
-
-/* leaflet overrides so attribution looks on-theme */
-.leaflet-container {
-  font-family: var(--sans);
-  background: #05070f;
-}
-.leaflet-control-attribution {
-  background: rgba(5,7,15,0.72) !important;
-  color: var(--ink-mute) !important;
-  font-size: 11px !important;
-  border: 1px solid var(--rule) !important;
-  border-radius: 2px;
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-}
-.leaflet-control-attribution a { color: var(--accent-cool) !important; }
-.leaflet-tooltip {
-  background: rgba(5,7,15,0.9) !important;
-  color: var(--ink) !important;
-  border: 1px solid var(--rule-strong) !important;
-  box-shadow: var(--shadow-md) !important;
-  backdrop-filter: blur(6px);
-}
-.leaflet-tooltip-top::before { border-top-color: var(--rule-strong) !important; }
-.leaflet-bar a {
-  background: var(--bg-elev) !important;
-  color: var(--ink) !important;
-  border-color: var(--rule) !important;
-}
-.leaflet-bar a:hover { background: rgba(255,255,255,0.06) !important; }
 
 /* selection */
 ::selection { background: rgba(77,139,245,0.3); color: #fff; }
