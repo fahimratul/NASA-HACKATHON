@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ECHO EARTH · Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body class="page-dashboard">
+  <header class="site-header">
+    <div class="container header-row">
+      <a class="brand" href="index.html">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span class="brand-text">
+          <strong>ECHO&nbsp;EARTH</strong>
+          <small>Experimental dashboard · v0.1</small>
+        </span>
+      </a>
+      <nav class="site-nav">
+        <a href="index.html">← Overview</a>
+        <a href="#" id="btnReport">Export brief</a>
+        <span class="pill pill-warn">Illustrative data</span>
+      </nav>
+    </div>
+  </header>
+
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="side-head">Views</div>
+      <nav class="side-nav" id="viewNav">
+        <button data-view="trends" class="active">
+          <span>Trends</span><span class="idx">01</span>
+        </button>
+        <button data-view="hazard">
+          <span>Hazard Signature</span><span class="idx">02</span>
+        </button>
+        <button data-view="back">
+          <span>Back in Time</span><span class="idx">03</span>
+        </button>
+      </nav>
+
+      <div class="side-head">Location</div>
+      <div class="loc-picker">
+        <label for="locationSelect">Area of interest</label>
+        <select id="locationSelect"></select>
+        <div class="coord mono" id="locCoord">—</div>
+      </div>
+
+      <div class="side-head">Horizon</div>
+      <div class="loc-picker" style="padding:0;">
+        <div class="horizon-tabs" id="horizonTabs" style="justify-content:flex-start; padding:10px 12px;">
+          <button data-h="24">24 h</button>
+          <button data-h="48" class="active">48 h</button>
+          <button data-h="72">72 h</button>
+        </div>
+      </div>
+
+      <div class="side-foot">
+        Data record: <code>2001 – 2024</code><br />
+        Sources: NASA MERRA-2, GPM IMERG, MODIS NDVI, NASADEM.<br />
+        <em>Concept stage. All values illustrative.</em>
+      </div>
+    </aside>
+
+    <main class="main">
+
+      <!-- =============== Trends view =============== -->
+      <section class="view active" id="view-trends">
+        <div class="view-head">
+          <div>
+            <h1>Earth Trend Intelligence</h1>
+            <div class="sub">What has been changing over 2001 – 2024, where, and by how much.</div>
+          </div>
+          <div class="right">
+            <div class="mono" id="trendsPeriod">Period · 2001-01 → 2024-12</div>
+            <div><span class="pill pill-muted">Theil–Sen · Mann–Kendall</span></div>
+          </div>
+        </div>
+
+        <div class="var-tabs" id="varTabs"></div>
+
+        <div class="trends-grid">
+          <div class="map-wrap panel" style="padding:0; overflow:hidden;">
+            <div id="trendMap" class="map"></div>
+            <div class="map-legend">
+              <div><strong id="legendTitle">Temperature trend</strong></div>
+              <div class="legend-bar" id="legendBar"></div>
+              <div class="legend-labels">
+                <span id="legendMin">—</span>
+                <span id="legendUnit">unit</span>
+                <span id="legendMax">—</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="stats-stack">
+            <div class="panel stat-card">
+              <div class="stat-label">Overall slope</div>
+              <div class="stat-val mono" id="statSlope">—</div>
+              <div class="stat-sub" id="statUnit">unit</div>
+              <div class="stat-badge">
+                <span class="sig-dot" id="sigDot"></span>
+                <span class="mono" id="statP">p = —</span>
+                <span class="muted" id="statSigLabel">—</span>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="panel-h"><h3>Summary</h3></div>
+              <p class="muted" id="trendSummary" style="margin:0;">—</p>
+              <div class="muted mono" id="trendSource" style="font-size:0.78rem; margin-top:12px;">source: —</div>
+            </div>
+          </div>
+
+          <div class="panel anomaly-card">
+            <div class="panel-h">
+              <h3>Monthly anomaly · basin mean</h3>
+              <span class="mono muted" id="anomalyPeriod">2001-01 → 2024-12</span>
+            </div>
+            <div class="chart"><canvas id="anomalyChart"></canvas></div>
+          </div>
+
+          <div class="region-contrast" id="regionContrast"></div>
+        </div>
+      </section>
+
+      <!-- =============== Hazard Signature view =============== -->
+      <section class="view" id="view-hazard">
+        <div class="view-head">
+          <div>
+            <h1>Earth Hazard Signature</h1>
+            <div class="sub">Four interpretable layers for the selected location and horizon.</div>
+          </div>
+          <div class="right">
+            <div class="mono" id="hazardWhere">—</div>
+            <div><span class="pill pill-alert">Experimental output</span></div>
+          </div>
+        </div>
+
+        <div class="hazard-grid">
+          <div>
+            <div class="ehs-layers" id="ehsLayers"></div>
+
+            <div class="panel" style="margin-top:16px;">
+              <div class="panel-h">
+                <h3>Contributing evidence</h3>
+                <span class="pill pill-muted">SHAP values · top features</span>
+              </div>
+              <div class="shap-axis">
+                <span>Feature</span>
+                <span class="center">← lowers probability · raises →</span>
+                <span style="text-align:right;">Value</span>
+              </div>
+              <div class="shap-list" id="shapList"></div>
+              <p class="muted" style="font-size:0.82rem; margin: 14px 0 0;">
+                SHAP shows which inputs influenced the model's output. It does <em>not</em> prove any input caused a disaster.
+              </p>
+            </div>
+          </div>
+
+          <div>
+            <div class="panel prob-card">
+              <div class="panel-h">
+                <h3>Hazard probability</h3>
+                <span class="mono muted" id="probHorizon">48 hr</span>
+              </div>
+              <div class="gauge" id="gauge">
+                <svg viewBox="0 0 200 110" aria-hidden="true">
+                  <path d="M20 100 A 80 80 0 0 1 180 100" fill="none" stroke="#ecebe4" stroke-width="14" stroke-linecap="round"/>
+                  <path id="gaugeFill" d="M20 100 A 80 80 0 0 1 180 100" fill="none" stroke="#a4292d" stroke-width="14" stroke-linecap="round"
+                        stroke-dasharray="251.3" stroke-dashoffset="251.3" style="transition: stroke-dashoffset 400ms ease;" />
+                </svg>
+                <div class="gauge-val">
+                  <div class="n" id="gaugeVal">—</div>
+                  <div class="u">event probability · 48 hr</div>
+                </div>
+              </div>
+              <p class="muted" style="text-align:center; font-size:0.86rem;">
+                Confidence: <strong id="probConf">—</strong> ·
+                Calibration pending validation.
+              </p>
+            </div>
+
+            <div class="panel" style="margin-top:16px;">
+              <div class="panel-h">
+                <h3>Exposure</h3>
+                <span class="pill pill-muted">who / what is at risk</span>
+              </div>
+              <ul class="exposure-list" id="exposureList"></ul>
+            </div>
+
+            <div class="advisory" id="advisory">—</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =============== Back in Time view =============== -->
+      <section class="view" id="view-back">
+        <div class="view-head">
+          <div>
+            <h1>Back in Time</h1>
+            <div class="sub">Freeze the dashboard before an event, inspect only what was knowable, then reveal what happened.</div>
+          </div>
+          <div class="right">
+            <span class="pill pill-muted">Retrospective investigation</span>
+          </div>
+        </div>
+
+        <div class="event-switch" id="eventSwitch"></div>
+
+        <p class="muted" id="eventSummary" style="margin-top:-6px; max-width: 70ch;">—</p>
+
+        <div class="timeline">
+          <div class="timeline-head">
+            <div>
+              <h3 style="margin:0;" id="timelineTitle">Timeline</h3>
+              <div class="muted mono" id="timelineIssued" style="font-size:0.82rem;">Frozen at —</div>
+            </div>
+            <div class="frozen"><span class="ic"></span><span>Future data locked</span></div>
+          </div>
+          <div class="stepper" id="stepper"></div>
+        </div>
+
+        <div class="back-grid">
+          <div class="panel">
+            <div class="panel-h"><h3>What we knew</h3><span class="pill pill-muted">at issue time</span></div>
+            <ul class="known-list" id="knownList"></ul>
+            <div class="lock-note">🔒 Information after the frozen date is not shown to the model.</div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-h"><h3>Model prediction</h3><span class="pill pill-alert">experimental</span></div>
+            <div class="pred-main">
+              <div><span class="n" id="predN">—</span><span class="u" style="margin-left:4px;">prob</span></div>
+              <div class="sub" id="predSub">—</div>
+            </div>
+            <ul class="known-list">
+              <li><span class="k">Model</span><span class="v">EHS-Flood v1</span></li>
+              <li><span class="k">Horizon</span><span class="v" id="predHorizon">— hr</span></li>
+              <li><span class="k">Confidence</span><span class="v" id="predConfidence">—</span></li>
+              <li><span class="k">Threshold</span><span class="v">0.50</span></li>
+            </ul>
+          </div>
+
+          <div class="panel">
+            <div class="panel-h"><h3>What actually happened</h3><span class="pill pill-muted" id="outcomePill">hidden</span></div>
+            <div class="reveal-wrap" id="revealWrap">
+              <div class="reveal-cover">
+                <strong style="margin-bottom:6px;">Outcome hidden</strong>
+                <span class="muted" style="font-size:0.86rem; max-width:28ch;">Click to reveal what the record shows after the frozen date.</span>
+                <button class="btn btn-primary" id="revealBtn" style="margin-top:14px;">Reveal outcome</button>
+              </div>
+              <div class="reveal-content outcome">
+                <span class="otag"><span class="dot"></span><span id="outcomeVerdict">—</span></span>
+                <h4 id="outcomeTitle">—</h4>
+                <p class="otext" id="outcomeText">—</p>
+                <div class="scorecard" id="outcomeScores"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- deps: Leaflet (map) + Chart.js (anomaly) -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

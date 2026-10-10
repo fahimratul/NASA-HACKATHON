@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ECHO EARTH · From Hidden Earth Trends to Actionable Disaster Intelligence</title>
+  <meta name="description" content="An explainable Earth intelligence platform. NASA Space Apps Challenge 2026 · Team MIST-DREAMERS." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body class="page-landing">
+  <header class="site-header">
+    <div class="container header-row">
+      <a class="brand" href="index.html">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span class="brand-text">
+          <strong>ECHO&nbsp;EARTH</strong>
+          <small>Earth System Trend Detective</small>
+        </span>
+      </a>
+      <nav class="site-nav">
+        <a href="#framework">Framework</a>
+        <a href="#method">Method</a>
+        <a href="#team">Team</a>
+        <a class="btn btn-primary" href="dashboard.html">Launch dashboard →</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <div class="eyebrow">
+            <span class="dot"></span>
+            NASA Space Apps Challenge 2026 · Concept stage
+          </div>
+          <h1>
+            From hidden Earth trends to
+            <span class="hl">actionable disaster intelligence.</span>
+          </h1>
+          <p class="lede">
+            ECHO EARTH analyses multi-decade NASA trends in temperature,
+            precipitation, vegetation and wind, then combines them with
+            current conditions, forecasts and local terrain to describe
+            emerging flood-related hazards — with the evidence shown,
+            not hidden.
+          </p>
+          <div class="hero-ctas">
+            <a class="btn btn-primary btn-lg" href="dashboard.html">Open the dashboard</a>
+            <a class="btn btn-ghost btn-lg" href="#framework">What is the Earth Hazard Signature?</a>
+          </div>
+          <div class="hero-meta">
+            <div><span class="meta-k">Variables</span><span class="meta-v">4</span></div>
+            <div><span class="meta-k">Record</span><span class="meta-v">2001 – 2024</span></div>
+            <div><span class="meta-k">Primary region</span><span class="meta-v">Bangladesh</span></div>
+            <div><span class="meta-k">Team</span><span class="meta-v">MIST-DREAMERS</span></div>
+          </div>
+        </div>
+
+        <aside class="hero-card">
+          <div class="card-head">
+            <span class="pill pill-muted">Case preview</span>
+            <span class="mono">24.89°N · 91.87°E</span>
+          </div>
+          <h3>Sylhet basin · June 2022</h3>
+          <p class="card-sub">Retrospective back-in-time investigation</p>
+          <div class="signature">
+            <div class="sig-row">
+              <span>Climate trend</span>
+              <span class="bar"><span style="width:72%"></span></span>
+              <span class="mono">+0.028 °C/yr</span>
+            </div>
+            <div class="sig-row">
+              <span>Anomaly (7-day)</span>
+              <span class="bar"><span style="width:88%; background:var(--accent-warm)"></span></span>
+              <span class="mono">+3.1 σ</span>
+            </div>
+            <div class="sig-row">
+              <span>Hazard likelihood</span>
+              <span class="bar"><span style="width:72%; background:var(--accent-strong)"></span></span>
+              <span class="mono">0.72</span>
+            </div>
+            <div class="sig-row">
+              <span>Exposure</span>
+              <span class="bar"><span style="width:64%; background:var(--accent-cool)"></span></span>
+              <span class="mono">7.2M people</span>
+            </div>
+          </div>
+          <p class="disclaimer">
+            Illustrative values. No model has yet been trained or validated.
+          </p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="section section-muted" id="problem">
+      <div class="container">
+        <div class="section-head">
+          <span class="eyebrow dark"><span class="dot"></span> The problem</span>
+          <h2>Trend maps describe the past. They rarely help someone decide what to do.</h2>
+        </div>
+        <div class="grid-3">
+          <article class="tile">
+            <h4>Signals studied in isolation</h4>
+            <p>Temperature, rainfall, vegetation and wind are usually mapped one variable at a time, so the links between them stay hidden.</p>
+          </article>
+          <article class="tile">
+            <h4>A trend is not a warning</h4>
+            <p>A long-term warming slope cannot, by itself, tell a planner where the next flood will arrive or by when.</p>
+          </article>
+          <article class="tile">
+            <h4>Decisions need evidence</h4>
+            <p>Analysts need credible, interpretable context with the uncertainty shown — not opaque single-number risk scores.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="framework">
+      <div class="container">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span> The framework</span>
+          <h2>The Earth Hazard Signature</h2>
+          <p class="section-sub">
+            Each assessment is four interpretable layers instead of one opaque score.
+            A warming trend never automatically raises a flood number — any influence
+            must be justified by model testing.
+          </p>
+        </div>
+        <div class="grid-4">
+          <article class="layer">
+            <span class="layer-num">01</span>
+            <h4>Climate trend</h4>
+            <p>Have environmental conditions been changing significantly over 2001–2024?</p>
+            <small class="src">Theil–Sen slope · Mann–Kendall</small>
+          </article>
+          <article class="layer">
+            <span class="layer-num">02</span>
+            <h4>Environmental anomaly</h4>
+            <p>How unusual are the current conditions compared with historical norms?</p>
+            <small class="src">Seasonal anomaly · z-scores</small>
+          </article>
+          <article class="layer">
+            <span class="layer-num">03</span>
+            <h4>Hazard likelihood</h4>
+            <p>What does a calibrated model or forecast indicate for the chosen horizon?</p>
+            <small class="src">EHS-Flood v1 · 24/48/72 hr</small>
+          </article>
+          <article class="layer">
+            <span class="layer-num">04</span>
+            <h4>Exposure</h4>
+            <p>Which communities, roads or other assets could be affected if the hazard arrives?</p>
+            <small class="src">Settlement · road network</small>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-muted" id="method">
+      <div class="container two-col">
+        <div>
+          <span class="eyebrow dark"><span class="dot"></span> Honest by design</span>
+          <h2>Three questions, two engines, one honest answer.</h2>
+          <ul class="method-list">
+            <li>
+              <strong>What has been changing?</strong>
+              Statistically significant long-term trends in four NASA variables, with uncertainty.
+            </li>
+            <li>
+              <strong>What is happening now?</strong>
+              Anomalies, antecedent rainfall and susceptibility combined into current context.
+            </li>
+            <li>
+              <strong>What might happen next?</strong>
+              A calibrated hazard model with explicit horizons, confidence and SHAP evidence.
+            </li>
+          </ul>
+          <p class="muted">
+            A dedicated <em>trend ablation</em> test asks whether long-term trend features
+            actually improve near-term hazard prediction. If they don't, we report that result.
+          </p>
+        </div>
+        <div class="method-card">
+          <h4>Inputs</h4>
+          <ul class="sources">
+            <li><span>Temperature</span><span class="mono">NASA MERRA-2</span></li>
+            <li><span>Precipitation</span><span class="mono">GPM IMERG Final</span></li>
+            <li><span>Vegetation</span><span class="mono">MODIS NDVI</span></li>
+            <li><span>Wind speed</span><span class="mono">NASA MERRA-2</span></li>
+            <li><span>Terrain</span><span class="mono">NASADEM</span></li>
+            <li><span>Soil moisture</span><span class="mono">NASA SMAP / GLDAS</span></li>
+            <li><span>River discharge</span><span class="mono">Copernicus GloFAS</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="team">
+      <div class="container">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span> Team MIST-DREAMERS</span>
+          <h2>Dhaka, Bangladesh</h2>
+        </div>
+        <ul class="team">
+          <li><strong>Md Rashidul Islam Shovon</strong><small>Team Owner</small></li>
+          <li><strong>AKM Zawadur Rafid</strong><small>Member</small></li>
+          <li><strong>Md Ariful Islam</strong><small>Member</small></li>
+          <li><strong>Md Fahim Morshed Ratul</strong><small>Member</small></li>
+          <li><strong>Md Tamim Hossain</strong><small>Member</small></li>
+          <li><strong>Abdulla Al Shahariar</strong><small>Member</small></li>
+        </ul>
+        <div class="cta-strip">
+          <div>
+            <h3>See the trends. Walk back through a flood. Judge the evidence.</h3>
+            <p class="muted">Interactive dashboard · experimental hazard estimates · uncertainty on every number.</p>
+          </div>
+          <a class="btn btn-primary btn-lg" href="dashboard.html">Launch dashboard →</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-row">
+      <div>
+        <strong>ECHO EARTH</strong> · NASA Space Apps Challenge 2026 · Team MIST-DREAMERS
+      </div>
+      <div class="muted">
+        Concept stage. Outputs on this site are illustrative, not operational warnings.
+      </div>
+    </div>
+  </footer>
+</body>
+</html>
