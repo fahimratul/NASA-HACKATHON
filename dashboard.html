@@ -33,7 +33,10 @@
     <aside class="sidebar">
       <div class="side-head">Views</div>
       <nav class="side-nav" id="viewNav">
-        <button data-view="trends" class="active">
+        <button data-view="globe" class="active">
+          <span>Mission Globe</span><span class="idx">00</span>
+        </button>
+        <button data-view="trends">
           <span>Trends</span><span class="idx">01</span>
         </button>
         <button data-view="hazard">
@@ -69,8 +72,61 @@
 
     <main class="main">
 
+      <!-- =============== Mission Globe view =============== -->
+      <section class="view active" id="view-globe">
+        <div class="view-head">
+          <div>
+            <h1>Mission Globe</h1>
+            <div class="sub">Live monitoring stations across the ECHO EARTH network.</div>
+          </div>
+          <div class="right">
+            <div class="mono"><span class="live-dot"></span> <span id="utcClock">—</span> UTC</div>
+            <div><span class="pill pill-good">6 stations online</span></div>
+          </div>
+        </div>
+
+        <div class="globe-grid">
+          <div class="globe-stage panel" style="padding:0; overflow:hidden;">
+            <div id="globeCanvas" class="globe-canvas">
+              <div class="globe-loading" id="globeLoading">
+                <div class="spinner"></div>
+                <span>Initialising scene…</span>
+              </div>
+            </div>
+            <div class="globe-overlay-tl">
+              <div class="telemetry-row"><span class="lbl">MISSION</span><span class="val">ECHO-EARTH · v0.1</span></div>
+              <div class="telemetry-row"><span class="lbl">ORBIT</span><span class="val">GEO · demonstration</span></div>
+              <div class="telemetry-row"><span class="lbl">SENSORS</span><span class="val">MERRA-2 · IMERG · MODIS</span></div>
+            </div>
+            <div class="globe-overlay-br">
+              <button class="globe-btn" id="globeReset" title="Reset view">⟳ Auto-rotate</button>
+            </div>
+            <div class="globe-overlay-hint">drag to orbit · scroll to zoom</div>
+          </div>
+
+          <aside class="globe-side">
+            <div class="panel">
+              <div class="panel-h"><h3>Monitoring stations</h3><span class="pill pill-muted">lat · lon</span></div>
+              <ul class="station-list" id="stationList"></ul>
+            </div>
+            <div class="panel">
+              <div class="panel-h"><h3>Signal readout</h3><span class="pill" id="sigPill">—</span></div>
+              <div class="readout" id="signalReadout">
+                <div class="readout-row"><span class="k">Climate trend</span><span class="v mono" id="roClimate">—</span></div>
+                <div class="readout-row"><span class="k">Anomaly</span><span class="v mono" id="roAnomaly">—</span></div>
+                <div class="readout-row"><span class="k">Hazard · 48h</span><span class="v mono" id="roHazard">—</span></div>
+                <div class="readout-row"><span class="k">Exposure</span><span class="v mono" id="roExposure">—</span></div>
+              </div>
+              <div class="readout-foot">
+                <span class="muted" style="font-size:0.78rem;">Illustrative · model not validated.</span>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
       <!-- =============== Trends view =============== -->
-      <section class="view active" id="view-trends">
+      <section class="view" id="view-trends">
         <div class="view-head">
           <div>
             <h1>Earth Trend Intelligence</h1>
@@ -282,5 +338,13 @@
 
   <script src="js/data.js"></script>
   <script src="js/app.js"></script>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js"
+      }
+    }
+  </script>
+  <script type="module" src="js/globe.js"></script>
 </body>
 </html>
